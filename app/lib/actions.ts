@@ -14,8 +14,10 @@ const FormSchema = z.object({
 });
 
 const CreateInvoice = FormSchema.omit({id: true, date: true});
+const UpdateInvoice = FormSchema.omit({id: true, date: true});
+const invoicePath = '/dashboard/invoices';
+
 export async function createInvoice(formData: FormData) {
-    const invoicePaht = '/dashboard/invoices';
     const { customerId, amount, status } = CreateInvoice.parse({
         customerId : formData.get('customerId'),
         amount: formData.get('amount'),
@@ -30,12 +32,31 @@ export async function createInvoice(formData: FormData) {
         VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
     `;
 
-    revalidatePath(invoicePaht); // clear cache and call to sever to save new cache
-    redirect(invoicePaht);
+    revalidatePath(invoicePath); // clear cache and call to sever to save new cache
+    redirect(invoicePath);
 
     // or
     // const rawFormData = Object.fromEntries(formData.entries());
     // Test it out
     // console.log(rawFormData);
     // console.log(typeof rawFormData.amount);
+}
+
+export async function updateInvoice(id: string, formData: FormData) {
+    const { customerId, amount, status } = UpdateInvoice.parse({
+        customerId: formData.get('customerId'),
+        amount: formData.get('amount'),
+        status: formData.get('status'),
+    });
+
+    const amountInCents = amount * 100;
+
+    await sql`
+    UPDATE invoices
+    SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+    WHERE id = ${id}
+  `;
+
+    revalidatePath(invoicePath);
+    redirect(invoicePath);
 }
