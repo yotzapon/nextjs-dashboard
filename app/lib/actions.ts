@@ -60,3 +60,8 @@ export async function updateInvoice(id: string, formData: FormData) {
     revalidatePath(invoicePath);
     redirect(invoicePath);
 }
+
+export async function deleteInvoice(id: string) {
+    await sql`DELETE FROM invoices WHERE id = ${id}`;
+    revalidatePath(invoicePath); // will trigger a new server request and re-render the table.
+}
